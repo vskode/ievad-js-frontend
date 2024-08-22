@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as d3 from "d3";
-import { useSpring, animated } from "react-spring";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -12,6 +11,11 @@ export const LineChart = ({
   setCursorPosition,
   color,
 }) => {
+  const data_label = data[0]
+  if (data_label['label'] == 'dataset1'){
+    var Z = null;
+  }
+  data = data.slice(1)
   // bounds = area inside the graph axis = calculated by substracting the margins
   const axesRef = useRef(null);
   const boundsWidth = width - MARGIN.right - MARGIN.left;
@@ -62,17 +66,23 @@ export const LineChart = ({
   //
   const getClosestPoint = (cursorPixelPosition) => {
     const x = xScale.invert(cursorPixelPosition);
-
+    // console.log(`cursor position: ${cursorPixelPosition}`)
     let minDistance = Infinity;
     let closest = null;
 
-    for (const point of data) {
-      const distance = Math.abs(point.x - x);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closest = point;
+    // if (Z == null){
+      for (const point of data) {
+        const distance = Math.abs(point.x - x);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closest = point;
+        }
       }
-    }
+    // }
+    // else {
+    //   closest = data.find( ({ z }) => z == Z)
+    //   // Z = null
+    // }
 
     return closest;
   };
@@ -81,12 +91,22 @@ export const LineChart = ({
   const onMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
+    // console.log(`mouse pos: ${e.clientX}`)
+    if (rect.left == 50){
+      console.log('rect left')
+    }
+    else {
+      console.log('rect right')
+    }
 
     const closest = getClosestPoint(mouseX);
+    Z = closest['z']
 
     setCursorPosition(xScale(closest.x));
+    // console.log(xScale(closest.x))
   };
 
+  
   return (
     <div>
       <svg width={width} height={height}>
@@ -105,7 +125,8 @@ export const LineChart = ({
           {cursorPosition && (
             <Cursor
               height={boundsHeight}
-              x={cursorPosition}
+              // x={cursorPosition}
+              x={xScale(getClosestPoint(cursorPosition)?.x)}
               y={yScale(getClosestPoint(cursorPosition)?.y)}
               color={color}
             />
@@ -135,27 +156,20 @@ export const LineChart = ({
 
 
 const Cursor = ({ x, y, height, color }) => {
-  const springProps = useSpring({
-    to: {
-      x,
-      y,
-    },
-  });
+  // console.log(x, y)
+  // const springProps = useSpring({
+  //   to: {
+  //     x,
+  //     y,
+  //   },
+  // });
 
-  if (!springProps.x) {
-    return null;
-  }
+  // if (!springProps.x) {
+  //   return null;
+  // }
 
   return (
     <>
-      <animated.line
-        x1={springProps.x}
-        x2={springProps.x}
-        y1={0}
-        y2={height}
-        stroke="black"
-        strokeWidth={1}
-      />
       <circle cx={x} cy={y} r={5} fill={color} />
     </>
   );
