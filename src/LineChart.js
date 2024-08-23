@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import * as d3 from "d3";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
-var Z = null;
+var PairingVariable = null;
 
 export const LineChart = ({
   width,
@@ -12,9 +12,8 @@ export const LineChart = ({
   setCursorPosition,
   color,
 }) => {
-  const data_label = data[0]
-
   data = data.slice(1)
+
   // bounds = area inside the graph axis = calculated by substracting the margins
   const axesRef = useRef(null);
   const boundsWidth = width - MARGIN.right - MARGIN.left;
@@ -52,68 +51,44 @@ export const LineChart = ({
     svgElement.append("g").call(yAxisGenerator);
   }, [xScale, yScale, boundsHeight]);
 
-  // Build the line
-  const lineBuilder = d3
-    .line()
-    .x((d) => xScale(d.x))
-    .y((d) => yScale(d.y));
-  const linePath = lineBuilder(data);
-  if (!linePath) {
-    return null;
+  const handleClick = (event) => {
+    console.log(event)
   }
+
+  // const [selectedPoint, setSelectedPoint] = useState(-1);
 
   //
   const getClosestPoint = (cursorPixelPosition) => {
-    // if (event.currentTarget){
-    //   // const rect = event.currentTarget.getBoundingClientRect();
-    // }
     const x = xScale.invert(cursorPixelPosition);
-    // console.log(`cursor placement: ${Z}`)
-    // if (Z==null){
-    //   const a = 1
-    // }
     let minDistance = Infinity;
     let closest = null;
     
-    if (Z == null){
+    if (PairingVariable == null){
       for (const point of data) {
         const distance = Math.abs(point.x - x);
         if (distance < minDistance) {
           minDistance = distance;
           closest = point;
-          Z = closest['z']
+          PairingVariable = closest['z']
         }
       }
-      }
-      else {
-          closest = data.find( ({ z }) => z == Z)
-          // Z = null
-        }
-      console.log(Z)
-      return closest;
-      };
+    }
+    else {
+      closest = data.find( ({ z }) => z == PairingVariable)
+    }
+    // console.log(Z)
+    return closest;
+  };
       
   //
   const onMouseMove = (e) => {
-    Z = null;
+    PairingVariable = null;
     const rect = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    // const mouseX = e.clientX - rect.left;
-    // if (rect.left == 50){
-    //   console.log('rect left')
-    //   // console.log(`mouse pos: ${e.clientX}`)
-    //   // console.log(`mouse goal pos: ${e.clientX}`)
-    // }
-    // else {
-    //   console.log('rect right')
-    //   // console.log(`mouse pos: ${e.clientX}`)
-    //   // console.log(`mouse goal pos: ${e.clientX}`)
-    // }
 
     const closest = getClosestPoint(mouseX);
 
     setCursorPosition(xScale(closest.x));
-    // console.log(xScale(closest.x))
   };
 
   
@@ -125,13 +100,21 @@ export const LineChart = ({
           height={boundsHeight}
           transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
         >
-          <path
-            d={linePath}
-            opacity={1}
-            stroke={color}
-            fill="none"
-            strokeWidth={2}
-          />
+          {data.map((d, i) =>  (
+              <circle
+                key={i}
+                onClick={(e) => handleClick(e)}
+                r={4} // radius
+                cx={xScale(d.x)} // position on the X axis
+                cy={yScale(d.y)} // on the Y axis
+                opacity={1}
+                stroke="#cb1dd1"
+                fill="#ABABAB"
+                fillOpacity={0.2}
+                strokeWidth={1}
+              />
+            )
+          )}
           {cursorPosition && (
             <Cursor
               height={boundsHeight}
@@ -163,24 +146,32 @@ export const LineChart = ({
   );
 };
 
+const Cursor = ({ x, y, color }) => {
 
-
-const Cursor = ({ x, y, height, color }) => {
-  // console.log(x, y)
-  // const springProps = useSpring({
-  //   to: {
-  //     x,
-  //     y,
-  //   },
-  // });
-
-  // if (!springProps.x) {
-  //   return null;
-  // }
+  const width = 150;
+  const height = 50;
 
   return (
     <>
-      <circle cx={x} cy={y} r={5} fill={color} />
+      <circle 
+        cx={x} 
+        cy={y} 
+        r={5} 
+        fill={color}
+      />
+      <rect 
+      x={x-width} 
+      y={y-height} 
+      width={width} 
+      height={height} 
+      fill="#AAAAAA"
+      visibility={'visible'}></rect>
+      <text 
+      x={x-width+2} 
+      y={y-height+12} 
+      fontFamily="Verdana" 
+      fontSize="12" 
+      fill="white">{PairingVariable}</text>
     </>
   );
 };
