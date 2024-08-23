@@ -51,9 +51,9 @@ export const LineChart = ({
     svgElement.append("g").call(yAxisGenerator);
   }, [xScale, yScale, boundsHeight]);
 
-  const handleClick = (event) => {
-    console.log(event)
-  }
+  // const handleClick = (event) => {
+  //   console.log(event)
+  // }
 
   // const [selectedPoint, setSelectedPoint] = useState(-1);
 
@@ -91,6 +91,10 @@ export const LineChart = ({
     setCursorPosition(xScale(closest.x));
   };
 
+  const handleClick = (event, d) => {
+    event.stopPropagation();  // Prevent event from being swallowed by other elements
+    console.log("Circle clicked:", d);
+  };
   
   return (
     <div>
@@ -100,25 +104,23 @@ export const LineChart = ({
           height={boundsHeight}
           transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
         >
-          {data.map((d, i) =>  (
-              <circle
-                key={i}
-                onClick={(e) => handleClick(e)}
-                r={4} // radius
-                cx={xScale(d.x)} // position on the X axis
-                cy={yScale(d.y)} // on the Y axis
-                opacity={1}
-                stroke="#cb1dd1"
-                fill="#ABABAB"
-                fillOpacity={0.2}
-                strokeWidth={1}
-              />
-            )
-          )}
+          {data.map((d, i) => (
+            <circle
+              key={i}
+              onClick={(e) => handleClick(e, d)}
+              r={4} // radius
+              cx={xScale(d.x)} // position on the X axis
+              cy={yScale(d.y)} // on the Y axis
+              opacity={1}
+              stroke="#cb1dd1"
+              fill="#ABABAB"
+              fillOpacity={0.2}
+              strokeWidth={1}
+            />
+          ))}
           {cursorPosition && (
             <Cursor
               height={boundsHeight}
-              // x={cursorPosition}
               x={xScale(getClosestPoint(cursorPosition)?.x)}
               y={yScale(getClosestPoint(cursorPosition)?.y)}
               color={color}
@@ -133,6 +135,7 @@ export const LineChart = ({
             onMouseLeave={() => setCursorPosition(null)}
             visibility={"hidden"}
             pointerEvents={"all"}
+            // style={{ pointerEvents: "none" }} // Ensure it does not intercept clicks
           />
         </g>
         <g
@@ -144,7 +147,7 @@ export const LineChart = ({
       </svg>
     </div>
   );
-};
+}
 
 const Cursor = ({ x, y, color }) => {
 
