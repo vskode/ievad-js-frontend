@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as d3 from "d3";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
+var Z = null;
 
 export const LineChart = ({
   width,
@@ -12,9 +13,7 @@ export const LineChart = ({
   color,
 }) => {
   const data_label = data[0]
-  if (data_label['label'] == 'dataset1'){
-    var Z = null;
-  }
+
   data = data.slice(1)
   // bounds = area inside the graph axis = calculated by substracting the margins
   const axesRef = useRef(null);
@@ -65,42 +64,53 @@ export const LineChart = ({
 
   //
   const getClosestPoint = (cursorPixelPosition) => {
+    // if (event.currentTarget){
+    //   // const rect = event.currentTarget.getBoundingClientRect();
+    // }
     const x = xScale.invert(cursorPixelPosition);
-    // console.log(`cursor position: ${cursorPixelPosition}`)
+    // console.log(`cursor placement: ${Z}`)
+    // if (Z==null){
+    //   const a = 1
+    // }
     let minDistance = Infinity;
     let closest = null;
-
-    // if (Z == null){
+    
+    if (Z == null){
       for (const point of data) {
         const distance = Math.abs(point.x - x);
         if (distance < minDistance) {
           minDistance = distance;
           closest = point;
+          Z = closest['z']
         }
       }
-    // }
-    // else {
-    //   closest = data.find( ({ z }) => z == Z)
-    //   // Z = null
-    // }
-
-    return closest;
-  };
-
+      }
+      else {
+          closest = data.find( ({ z }) => z == Z)
+          // Z = null
+        }
+      console.log(Z)
+      return closest;
+      };
+      
   //
   const onMouseMove = (e) => {
+    Z = null;
     const rect = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    // console.log(`mouse pos: ${e.clientX}`)
-    if (rect.left == 50){
-      console.log('rect left')
-    }
-    else {
-      console.log('rect right')
-    }
+    // const mouseX = e.clientX - rect.left;
+    // if (rect.left == 50){
+    //   console.log('rect left')
+    //   // console.log(`mouse pos: ${e.clientX}`)
+    //   // console.log(`mouse goal pos: ${e.clientX}`)
+    // }
+    // else {
+    //   console.log('rect right')
+    //   // console.log(`mouse pos: ${e.clientX}`)
+    //   // console.log(`mouse goal pos: ${e.clientX}`)
+    // }
 
     const closest = getClosestPoint(mouseX);
-    Z = closest['z']
 
     setCursorPosition(xScale(closest.x));
     // console.log(xScale(closest.x))
