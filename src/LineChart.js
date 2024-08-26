@@ -107,7 +107,6 @@ export const LineChart = ({
           {data.map((d, i) => (
             <circle
               key={i}
-              onClick={(e) => handleClick(e, d)}
               r={4} // radius
               cx={xScale(d.x)} // position on the X axis
               cy={yScale(d.y)} // on the Y axis
@@ -135,7 +134,7 @@ export const LineChart = ({
             onMouseLeave={() => setCursorPosition(null)}
             visibility={"hidden"}
             pointerEvents={"all"}
-            // style={{ pointerEvents: "none" }} // Ensure it does not intercept clicks
+            onClick={(e) => handleClick(e, getClosestPoint(cursorPosition))}
           />
         </g>
         <g
