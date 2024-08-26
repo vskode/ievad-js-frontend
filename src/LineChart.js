@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import axios from "axios";
 import * as d3 from "d3";
 
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
@@ -13,6 +14,7 @@ export const LineChart = ({
   color,
 }) => {
   data = data.slice(1)
+  const [APIData, setAPIData] = useState(-1)
 
   // bounds = area inside the graph axis = calculated by substracting the margins
   const axesRef = useRef(null);
@@ -54,7 +56,6 @@ export const LineChart = ({
   //
   const getClosestPoint = (cursorPixelPosition) => {
     const x = xScale.invert(cursorPixelPosition);
-    const y = yScale.invert(cursorPixelPosition);
     let minDistance = Infinity;
     let closest = null;
     
@@ -72,8 +73,6 @@ export const LineChart = ({
     else {
       closest = data.find( ({ z }) => z == PairingVariable)
     }
-    
-    // console.log(Z)
     return closest;
   };
       
@@ -87,10 +86,22 @@ export const LineChart = ({
 
     setCursorPosition(xScale(closest.x));
   };
-
+  
   const handleClick = (event, d) => {
     event.stopPropagation();  // Prevent event from being swallowed by other elements
     console.log("Circle clicked:", d);
+    // const url = "/sample.json" # this would be for a local file located in /public/
+    const url = "http://127.0.0.1:8000/";
+    axios.get(url)
+      .then(response => {
+        console.log(response.data)
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+    
+    console.log(APIData)
   };
   
   return (
