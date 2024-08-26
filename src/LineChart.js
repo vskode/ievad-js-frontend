@@ -20,11 +20,11 @@ export const LineChart = ({
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
 
   // Y axis
-  const [min, max] = d3.extent(data, (d) => d.y);
+  const [min, yMax] = d3.extent(data, (d) => d.y);
   const yScale = useMemo(() => {
     return d3
       .scaleLinear()
-      .domain([0, max || 0])
+      .domain([0, yMax || 0])
       .range([boundsHeight, 0]);
   }, [data, height]);
 
@@ -51,21 +51,17 @@ export const LineChart = ({
     svgElement.append("g").call(yAxisGenerator);
   }, [xScale, yScale, boundsHeight]);
 
-  // const handleClick = (event) => {
-  //   console.log(event)
-  // }
-
-  // const [selectedPoint, setSelectedPoint] = useState(-1);
-
   //
   const getClosestPoint = (cursorPixelPosition) => {
     const x = xScale.invert(cursorPixelPosition);
+    const y = yScale.invert(cursorPixelPosition);
     let minDistance = Infinity;
     let closest = null;
     
     if (PairingVariable == null){
       for (const point of data) {
-        const distance = Math.abs(point.x - x);
+        const xDist = Math.abs(point.x - x)/xMax;
+        const distance = xDist;
         if (distance < minDistance) {
           minDistance = distance;
           closest = point;
@@ -76,6 +72,7 @@ export const LineChart = ({
     else {
       closest = data.find( ({ z }) => z == PairingVariable)
     }
+    
     // console.log(Z)
     return closest;
   };
@@ -162,18 +159,18 @@ const Cursor = ({ x, y, color }) => {
         fill={color}
       />
       <rect 
-      x={x-width} 
-      y={y-height} 
-      width={width} 
-      height={height} 
-      fill="#AAAAAA"
-      visibility={'visible'}></rect>
+        x={x-width} 
+        y={y-height} 
+        width={width} 
+        height={height} 
+        fill="#AAAAAA"
+        visibility={'visible'}></rect>
       <text 
-      x={x-width+2} 
-      y={y-height+12} 
-      fontFamily="Verdana" 
-      fontSize="12" 
-      fill="white">{PairingVariable}</text>
+        x={x-width+2} 
+        y={y-height+12} 
+        fontFamily="Verdana" 
+        fontSize="12" 
+        fill="white">{PairingVariable}</text>
     </>
   );
 };
