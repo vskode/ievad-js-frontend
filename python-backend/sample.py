@@ -1,6 +1,12 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-import json
+from pydantic import BaseModel
+
+
+class Item(BaseModel):
+    x: int
+    y: int
+    z: int
 
 # with open('public/data.json', 'r') as f:
 #     data = f.read()
@@ -14,6 +20,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.post("/getDataPoint")
+async def create_item(item: Item):
+    print(item)
+    return {'message': 'values successfully received'}
 
 @app.get("/")
 # async def create_item(item: Item):

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import * as d3 from "d3";
 
@@ -95,18 +95,18 @@ export const LineChart = ({
     setCursorPosition(xScale(closest.x));
   };
   
-  const handleClick = (event, d) => {
+  const handleClick = (event, dataPoint) => {
     event.stopPropagation();  // Prevent event from being swallowed by other elements
-    console.log("Circle clicked:", d);
+    console.log("Circle clicked:", dataPoint);
     const url = "http://127.0.0.1:8000/";
-    axios.get(url)
-      .then(response => {
-        console.log(response.data)
-      })
-      .catch(function (error) {
-        // handle error
-        console.log(error);
-      })
+    axios.post(url+'getDataPoint/', dataPoint)
+    .then(response => {
+      console.log(response.data)
+    })
+    .catch(function (error) {
+      // handle error
+      console.log(error);
+    })
   };
   
   const points = [];
