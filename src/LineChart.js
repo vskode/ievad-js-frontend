@@ -13,25 +13,21 @@ export const LineChart = ({
   setCursorPosition,
   color,
 }) => {
-  data = data.slice(1)
-  const [APIData, setAPIData] = useState(-1)
-
   // bounds = area inside the graph axis = calculated by substracting the margins
   const axesRef = useRef(null);
   const boundsWidth = width - MARGIN.right - MARGIN.left;
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
 
-  // Y axis
-  const [min, yMax] = d3.extent(data, (d) => d.y);
+  const [min, yMax] = d3.extent(data.y);
   const yScale = useMemo(() => {
     return d3
-      .scaleLinear()
-      .domain([0, yMax || 0])
-      .range([boundsHeight, 0]);
+    .scaleLinear()
+    .domain([0, yMax || 0])
+    .range([boundsHeight, 0]);
   }, [data, height]);
 
   // X axis
-  const [xMin, xMax] = d3.extent(data, (d) => d.x);
+  const [xMin, xMax] = d3.extent(data.x);
   const xScale = useMemo(() => {
     return d3
       .scaleLinear()
@@ -60,18 +56,30 @@ export const LineChart = ({
     let closest = null;
     
     if (PairingVariable == null){
-      for (const point of data) {
-        const xDist = Math.abs(point.x - x)/xMax;
+      let i = 0;
+      for (const point of data.x) {
+        const xDist = Math.abs(point - x)/xMax;
         const distance = xDist;
         if (distance < minDistance) {
           minDistance = distance;
-          closest = point;
+          // closest = point;
+          closest = {
+            'x': data.x[i],
+            'y': data.y[i],
+            'z': data.z[i],
+          };
           PairingVariable = closest['z']
         }
+        i++
       }
     }
     else {
-      closest = data.find( ({ z }) => z == PairingVariable)
+      let index = data.z.findIndex((e) => e == PairingVariable)
+      closest = {
+        'x': data.x[index],
+        'y': data.y[index],
+        'z': data.z[index],
+      };
     }
     return closest;
   };
@@ -90,7 +98,6 @@ export const LineChart = ({
   const handleClick = (event, d) => {
     event.stopPropagation();  // Prevent event from being swallowed by other elements
     console.log("Circle clicked:", d);
-    // const url = "/sample.json" # this would be for a local file located in /public/
     const url = "http://127.0.0.1:8000/";
     axios.get(url)
       .then(response => {
@@ -100,10 +107,25 @@ export const LineChart = ({
         // handle error
         console.log(error);
       })
-    
-    console.log(APIData)
   };
   
+  const points = [];
+  for (let i = 0; i <= data.x.length; i++){
+    points.push(
+    <circle
+      key={i}
+      r={4} // radius
+      cx={xScale(data.x[i])} // position on the X axis
+      cy={yScale(data.y[i])} // on the Y axis
+      opacity={1}
+      stroke="#cb1dd1"
+      fill="#ABABAB"
+      fillOpacity={0.2}
+      strokeWidth={1}
+    />         
+    )
+  }
+
   return (
     <div>
       <svg width={width} height={height}>
@@ -112,19 +134,7 @@ export const LineChart = ({
           height={boundsHeight}
           transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
         >
-          {data.map((d, i) => (
-            <circle
-              key={i}
-              r={4} // radius
-              cx={xScale(d.x)} // position on the X axis
-              cy={yScale(d.y)} // on the Y axis
-              opacity={1}
-              stroke="#cb1dd1"
-              fill="#ABABAB"
-              fillOpacity={0.2}
-              strokeWidth={1}
-            />
-          ))}
+          {points}
           {cursorPosition && (
             <Cursor
               height={boundsHeight}
